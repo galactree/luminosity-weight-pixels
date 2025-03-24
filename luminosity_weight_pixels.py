@@ -298,4 +298,3 @@ def project_density(coords, quantity, N_px=100):
 
 
 
-    
