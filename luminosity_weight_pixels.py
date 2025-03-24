@@ -195,7 +195,7 @@ def find_nearest_stars(gas_coords, star_coords, N_star=None, leafsize=32):
 
 def illuminate_gas(L_star, distance, index, return_sum=True):
     '''
-    get the gas illuminance (?) for a gas cell from the distance to the closest N_stars, their luminosities and the index to find the luminosities
+    get the gas illumination (?) for a gas cell from the distance to the closest N_stars, their luminosities and the index to find the luminosities
 
     Parameters
     L_star, array, shape (K,):
@@ -207,26 +207,94 @@ def illuminate_gas(L_star, distance, index, return_sum=True):
         index of N nearest stars within L_star for each of the M gas cell
     
     return_sum, default=True:
-        whether to return the sum of each of the contributions to the illuminance(?)
+        whether to return the sum of each of the contributions to the illumination(?)
         if False, the individual contributions from each of the N stars is returned
     
     Returns
-    gas_illuminance, array, shape (M,):
-        the total illuminance(?) of each gas cell if return_sum=True
+    gas_illumination, array, shape (M,):
+        the total illumination(?) of each gas cell if return_sum=True
     
-    gas_illuminance_contributions, array, shape (M, N):
-        the contribution of each N star to the illuminance for each gas cell
+    gas_illumination_contributions, array, shape (M, N):
+        the contribution of each N star to the illumination for each gas cell
     '''
 
-    gas_illuminance_contributions = L_star[index]/(4*np.pi*distance**2)
+    gas_illumination_contributions = L_star[index]/(4*np.pi*distance**2)
     
-    gas_illuminance = gas_illuminance_contributions.sum(axis=-1)
+    gas_illumination = gas_illumination_contributions.sum(axis=-1)
 
     if return_sum:
-        return gas_illuminance
+        return gas_illumination
     
     else:
-        return gas_illuminance_contributions
+        return gas_illumination_contributions
+    
+def project_quantity(coords, quantity, N_px=100, dims=[0, 1]):
+    '''
+    Project a quantity from three dimensions into two dimensions
+
+    Parameters
+    coords, array, shape (N,3):
+        coordinates of the gas cells in three dimensions
+    
+    
+    quantity, array, shape (N,):
+        the quantity to project for each gas cell
+
+    N_px, int:
+        the number of pixels along each dimension of the projection. default= 100
+    
+    dims, listlike, length 2:
+        the spatial dimensions to include in the projection
+
+    Returns
+    projected_quantity, array, shape (N_px, N_px):
+        two dimensional projection of the quantity
+    
+    xs, array, shape (N_px+1,):
+        The bin edges along the first dimension
+    
+    ys, array, shape (N_px+1,):
+        The bin edges along the second dimension
+
+    '''
+    projected_quantity, xs, ys = np.histogram2d(coords[:,dims[0]], coords[:,dims[1]], weights=quantity, bins=N_px)
+    return projected_quantity.T, xs, ys
+
+def project_density(coords, quantity, N_px=100):
+    '''
+    Project a quantity from three dimensions into two dimensionsional density
+
+    Parameters
+    coords, array, shape (N,3):
+        coordinates of the gas cells in three dimensions
+    
+    
+    quantity, array, shape (N,):
+        the quantity to project for each gas cell (eg. mass)
+
+    N_px, int:
+        the number of pixels along each dimension of the projection. default= 100
+    
+    dims, listlike, length 2:
+        the spatial dimensions to include in the projection
+
+    Returns
+    projected_quantity_density, array, shape (N_px, N_px):
+        two dimensional density projection of the quantity
+    
+    xs, array, shape (N_px+1,):
+        The bin edges along the first dimension
+    
+    ys, array, shape (N_px+1,):
+        The bin edges along the second dimension
+
+    '''
+    density, xs, ys = np.histogram2d(coords[:,0], coords[:,1], weights=quantity, bins=N_px)
+    density /= (np.diff(xs)[0]*np.diff(ys)[0])
+    return density.T, xs, ys
+
+
+
 
 
 
